@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScopeMint — Professional Proposal Builder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0d14;--bg2:#0f1320;--card:#141b2d;--card2:#1a2340;
+  --accent:#6c63ff;--accent2:#5a52e0;--green:#10b981;--warn:#f59e0b;
+  --danger:#ef4444;--blue:#3b82f6;--teal:#14b8a6;
+  --text:#f0f4ff;--text2:#8892b0;--text3:#4a5568;
+  --border:#1e2a45;--r:14px;--rs:9px;
+}
+body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh;line-height:1.5}
+a{color:inherit;text-decoration:none}
+
+/* APP LAYOUT */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{padding:28px;overflow-y:auto;min-height:100vh}
+
+/* SIDEBAR */
+.logo-wrap{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.logo-text{font-size:20px;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(135deg,#6c63ff,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
+.nav{padding:12px 10px;flex:1}
+.nav-group-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;padding:12px 8px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:background 0.15s,color 0.15s;margin-bottom:1px;border:1px solid transparent}
+.nav-item:hover{background:rgba(108,99,255,0.08);color:var(--text)}
+.nav-item.active{background:rgba(108,99,255,0.14);color:#a89fff;border-color:rgba(108,99,255,0.2)}
+.nav-icon{font-size:15px;width:18px;text-align:center}
+.sidebar-footer{padding:14px;border-top:1px solid var(--border)}
+.sb-stat{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}
+.sb-stat-label{color:var(--text3)}
+.sb-stat-val{color:#a89fff;font-weight:700}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.ph-title{font-size:22px;font-weight:800;letter-spacing:-0.3px}
+.ph-sub{font-size:13px;color:var(--text2);margin-top:3px}
+.ph-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--rs);padding:9px 18px;font-family:Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity 0.15s,transform 0.15s}
+.btn:hover{opacity:0.88;transform:translateY(-1px)}
+.btn-sm{padding:6px 13px;font-size:12px}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 16px;font-family:Arial,sans-serif;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color 0.15s,color 0.15s}
+.btn-outline:hover{border-color:var(--accent);color:#a89fff}
+.btn-ghost{background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.2);border-radius:var(--rs);padding:6px 12px;font-family:Arial,sans-serif;font-size:12px;cursor:pointer}
+.btn-ghost:hover{background:var(--danger);color:#fff}
+.btn-green{background:linear-gradient(135deg,var(--green),#059669)}
+.btn-teal{background:linear-gradient(135deg,var(--teal),#0d9488)}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;text-align:center;transition:border-color 0.15s,transform 0.15s}
+.stat-card:hover{border-color:rgba(108,99,255,0.3);transform:translateY(-2px)}
+.stat-num{font-size:1.9em;font-weight:900;line-height:1;margin-bottom:5px}
+.stat-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:12px;transition:border-color 0.15s}
+.card:hover{border-color:rgba(108,99,255,0.2)}
+.card-l-accent{border-left:3px solid var(--accent)}
+.card-l-green{border-left:3px solid var(--green)}
+.card-l-warn{border-left:3px solid var(--warn)}
+.card-l-danger{border-left:3px solid var(--danger)}
+.card-l-teal{border-left:3px solid var(--teal)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:0.03em}
+.b-accent{background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.25);color:#a89fff}
+.b-green{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:var(--green)}
+.b-warn{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:var(--warn)}
+.b-danger{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:var(--danger)}
+.b-blue{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:var(--blue)}
+.b-teal{background:rgba(20,184,166,0.12);border:1px solid rgba(20,184,166,0.25);color:var(--teal)}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:Arial,sans-serif;font-size:13px;padding:9px 13px;outline:none;transition:border-color 0.15s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--text3)}
+select.form-input option{background:var(--card2);color:var(--text)}
+textarea.form-input{resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+
+/* SECTION HEADING */
+.sh{font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.divider{height:1px;background:var(--border);margin:18px 0}
+
+/* PROPOSAL ROW */
+.proposal-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;transition:border-color 0.15s}
+.proposal-row:hover{border-color:rgba(108,99,255,0.3)}
+.pr-info{}
+.pr-title{font-size:14px;font-weight:700;margin-bottom:3px}
+.pr-meta{font-size:12px;color:var(--text2)}
+.pr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pr-amount{font-size:18px;font-weight:900;color:var(--green)}
+.pr-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* LINE ITEMS */
+.li-grid{display:grid;grid-template-columns:1fr 70px 90px 80px 30px;gap:7px;align-items:center;margin-bottom:7px}
+.li-header{display:grid;grid-template-columns:1fr 70px 90px 80px 30px;gap:7px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.li-total{font-size:13px;font-weight:700;color:var(--green);padding:9px 4px}
+
+/* TOTALS */
+.totals-box{background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);padding:16px 18px;margin-top:12px}
+.total-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text2)}
+.total-final{display:flex;justify-content:space-between;font-size:20px;font-weight:900;padding-top:10px;margin-top:8px;border-top:1px solid var(--border);color:var(--text)}
+
+/* FORM TABS */
+.ftab-bar{display:flex;gap:3px;background:var(--card2);border-radius:11px;padding:3px;margin-bottom:20px;border:1px solid var(--border);width:fit-content}
+.ftab{padding:7px 16px;border-radius:9px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:background 0.15s,color 0.15s}
+.ftab.active{background:var(--accent);color:#fff}
+.ftab-pane{display:none}
+.ftab-pane.active{display:block}
+
+/* PROGRESS */
+.prog-track{height:5px;background:var(--card2);border-radius:99px;overflow:hidden;margin:4px 0}
+.prog-fill{height:100%;border-radius:99px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:9px 12px;border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 12px;font-size:13px;border-bottom:1px solid rgba(30,42,69,0.4);vertical-align:middle}
+.tbl tr:hover td{background:rgba(108,99,255,0.03)}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-ico{font-size:40px;margin-bottom:12px}
+.empty p{font-size:13px;line-height:1.6}
+
+/* PREVIEW MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;overflow-y:auto;padding:20px}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.modal-close{position:fixed;top:14px;right:14px;background:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.4);z-index:1001}
+.modal-print{position:fixed;top:14px;right:62px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);padding:8px 15px;font-family:Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;z-index:1001}
+
+/* PROPOSAL DOCUMENT */
+.doc{background:#fff;color:#111;border-radius:16px;max-width:760px;width:100%;padding:44px 48px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.doc-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:2px solid #f0f0f8;margin-bottom:32px}
+.doc-brand{font-size:22px;font-weight:900;color:#6c63ff}
+.doc-brand-sub{font-size:12px;color:#999;margin-top:3px}
+.doc-to-label{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px}
+.doc-to-name{font-size:15px;font-weight:700;color:#111}
+.doc-to-meta{font-size:12px;color:#666;margin-top:2px}
+.doc-title{font-size:26px;font-weight:900;color:#111;margin-bottom:5px}
+.doc-meta{font-size:13px;color:#888;margin-bottom:28px}
+.doc-section{margin-bottom:26px}
+.doc-section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #f0f0f0}
+.doc-overview{font-size:14px;line-height:1.75;color:#333}
+.doc-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f7f7f7}
+.doc-item-name{font-size:14px;font-weight:600;color:#111}
+.doc-item-qty{font-size:12px;color:#888;margin-top:2px}
+.doc-item-total{font-size:14px;font-weight:800;color:#111;white-space:nowrap}
+.doc-totals{background:#f8f8ff;border-radius:10px;padding:16px 18px;margin-top:12px}
+.doc-total-row{display:flex;justify-content:space-between;font-size:13px;color:#555;padding:4px 0}
+.doc-total-final{display:flex;justify-content:space-between;font-size:20px;font-weight:900;color:#6c63ff;padding-top:10px;margin-top:8px;border-top:2px solid #e8e8ff}
+.doc-terms-box{background:#fffdf0;border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 16px;font-size:13px;color:#555;line-height:1.7;white-space:pre-wrap}
+.doc-footer{text-align:center;font-size:11px;color:#bbb;margin-top:32px;padding-top:18px;border-top:1px solid #eee}
+.doc-signature{display:flex;justify-content:space-between;margin-top:24px;gap:20px}
+.doc-sig-box{flex:1;border-top:2px solid #eee;padding-top:10px;text-align:center;font-size:12px;color:#999}
+
+@media(max-width:700px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .li-grid,.li-header{grid-template-columns:1fr 60px 70px}
+  .doc{padding:24px 20px}
+}
+@media print{
+  .modal-close,.modal-print{display:none!important}
+  .modal-overlay{position:static;background:none;padding:0;display:block}
+  .doc{box-shadow:none;border-radius:0;max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo-wrap">
+    <div class="logo-text">ScopeMint</div>
+    <div class="logo-sub">Proposal Builder</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-group-label">Workspace</div>
+    <div class="nav-item active" onclick="nav('dashboard')" id="nav-dashboard"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item" onclick="nav('proposals')" id="nav-proposals"><span class="nav-icon">📋</span>Proposals</div>
+    <div class="nav-item" onclick="nav('new')" id="nav-new"><span class="nav-icon">✏️</span>New Proposal</div>
+    <div class="nav-group-label">Resources</div>
+    <div class="nav-item" onclick="nav('clients')" id="nav-clients"><span class="nav-icon">👥</span>Clients</div>
+    <div class="nav-item" onclick="nav('services')" id="nav-services"><span class="nav-icon">⚡</span>Services</div>
+    <div class="nav-group-label">Configure</div>
+    <div class="nav-item" onclick="nav('settings')" id="nav-settings"><span class="nav-icon">⚙️</span>Studio Settings</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sb-stat"><span class="sb-stat-label">Accepted Revenue</span><span class="sb-stat-val" id="sb-rev">$0</span></div>
+    <div class="sb-stat"><span class="sb-stat-label">Pipeline</span><span class="sb-stat-val" id="sb-pipe">$0</span></div>
+    <div class="sb-stat"><span class="sb-stat-label">Close Rate</span><span class="sb-stat-val" id="sb-cr">0%</span></div>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div><div class="ph-title">Dashboard</div><div class="ph-sub">Your proposal pipeline overview</div></div>
+    <div class="ph-actions"><button class="btn" onclick="nav('new')">✏️ New Proposal</button></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" style="color:#a89fff" id="ds-total">0</div><div class="stat-label">Total Proposals</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)" id="ds-rev">$0</div><div class="stat-label">Accepted Revenue</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--warn)" id="ds-pipe">$0</div><div class="stat-label">Pipeline Value</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--blue)" id="ds-cr">0%</div><div class="stat-label">Close Rate</div></div>
+  </div>
+  <div class="grid2">
+    <div>
+      <div class="sh">📋 Recent Proposals</div>
+      <div id="ds-recent"></div>
+    </div>
+    <div>
+      <div class="sh">🔔 Follow-ups Needed</div>
+      <div id="ds-fu"></div>
+      <div class="divider"></div>
+      <div class="sh">📈 Status Breakdown</div>
+      <div id="ds-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROPOSALS -->
+<div class="page" id="page-proposals">
+  <div class="ph">
+    <div><div class="ph-title">Proposals</div><div class="ph-sub">Manage all your client proposals</div></div>
+    <div class="ph-actions">
+      <select class="form-input" id="filter-status" onchange="renderProposals()" style="width:130px;padding:8px 12px">
+        <option value="">All</option>
+        <option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option>
+      </select>
+      <button class="btn" onclick="nav('new')">✏️ New Proposal</button>
+    </div>
+  </div>
+  <div id="proposals-list"></div>
+</div>
+
+<!-- NEW/EDIT PROPOSAL -->
+<div class="page" id="page-new">
+  <div class="ph">
+    <div><div class="ph-title" id="form-heading">New Proposal</div><div class="ph-sub">Build a professional client proposal</div></div>
+    <div class="ph-actions">
+      <button class="btn-outline" onclick="nav('proposals')">Cancel</button>
+      <button class="btn btn-green" onclick="saveProposal()">💾 Save</button>
+    </div>
+  </div>
+  <input type="hidden" id="edit-id">
+
+  <div class="ftab-bar">
+    <div class="ftab active" onclick="ftab('fi')">Client & Info</div>
+    <div class="ftab" onclick="ftab('fs')">Scope & Pricing</div>
+    <div class="ftab" onclick="ftab('ft')">Terms & Notes</div>
+  </div>
+
+  <!-- Client Info -->
+  <div class="ftab-pane active" id="fi">
+    <div class="card">
+      <div class="sh">Client Details</div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Client Name *</label><input class="form-input" id="fc-name" placeholder="e.g. Acme Corp"></div>
+        <div class="form-group"><label class="form-label">Client Email</label><input class="form-input" id="fc-email" placeholder="client@company.com" type="email"></div>
+        <div class="form-group"><label class="form-label">Company</label><input class="form-input" id="fc-company" placeholder="Company name"></div>
+        <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fc-location" placeholder="City, Country"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sh">Proposal Details</div>
+      <div class="form-group"><label class="form-label">Proposal Title *</label><input class="form-input" id="fp-title" placeholder="e.g. Website Redesign for Acme Corp"></div>
+      <div class="grid3">
+        <div class="form-group"><label class="form-label">Project Type</label>
+          <select class="form-input" id="fp-type"><option>Web Design</option><option>Web Development</option><option>Mobile App</option><option>Branding & Logo</option><option>SEO & Marketing</option><option>Content Writing</option><option>UI/UX Design</option><option>E-commerce</option><option>Consulting</option><option>Other</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-input" id="fp-status"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Priority</label>
+          <select class="form-input" id="fp-priority"><option>Normal</option><option>High</option><option>Urgent</option><option>Low</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Valid Until</label><input class="form-input" id="fp-valid" type="date"></div>
+        <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" id="fp-start" type="date"></div>
+        <div class="form-group"><label class="form-label">Currency</label>
+          <select class="form-input" id="fp-currency" onchange="calcTotals()"><option value="$">USD ($)</option><option value="€">EUR (€)</option><option value="£">GBP (£)</option><option value="₹">INR (₹)</option><option value="CA$">CAD</option><option value="A$">AUD</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Project Overview</label><textarea class="form-input" id="fp-overview" rows="4" placeholder="Describe the project goals, scope, and what you'll deliver..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- Scope -->
+  <div class="ftab-pane" id="fs">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="sh" style="margin:0">Line Items</div>
+        <button class="btn btn-sm" onclick="addLI()">+ Add Item</button>
+      </div>
+      <div class="li-header"><span>Description</span><span>Qty</span><span>Rate</span><span>Total</span><span></span></div>
+      <div id="li-container"></div>
+      <button class="btn-outline btn-sm" onclick="addLI()" style="width:100%;margin-top:6px;justify-content:center">+ Add Line Item</button>
+    </div>
+    <div class="card">
+      <div class="sh">Pricing</div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Discount %</label><input class="form-input" id="fp-disc" type="number" min="0" max="100" value="0" oninput="calcTotals()"></div>
+        <div class="form-group"><label class="form-label">Tax %</label><input class="form-input" id="fp-tax" type="number" min="0" max="100" value="0" oninput="calcTotals()"></div>
+        <div class="form-group"><label class="form-label">Payment Terms</label>
+          <select class="form-input" id="fp-payment"><option>50% upfront, 50% on delivery</option><option>100% upfront</option><option>Net 30</option><option>Net 15</option><option>3 equal milestones</option><option>Monthly retainer</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Revision Rounds</label><input class="form-input" id="fp-rev" type="number" min="0" value="2"></div>
+      </div>
+      <div class="totals-box">
+        <div class="total-row"><span>Subtotal</span><span id="t-sub">$0.00</span></div>
+        <div class="total-row"><span>Discount</span><span id="t-disc" style="color:var(--danger)">-$0.00</span></div>
+        <div class="total-row"><span>Tax</span><span id="t-tax">+$0.00</span></div>
+        <div class="total-final"><span>Total</span><span id="t-total" style="color:var(--green)">$0.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terms -->
+  <div class="ftab-pane" id="ft">
+    <div class="card">
+      <div class="sh">Timeline</div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Duration</label><input class="form-input" id="fp-dur" placeholder="e.g. 4 weeks"></div>
+        <div class="form-group"><label class="form-label">Milestones</label><textarea class="form-input" id="fp-milestones" rows="3" placeholder="Week 1: Discovery&#10;Week 2-3: Design&#10;Week 4: Launch"></textarea></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sh">Terms & Conditions</div>
+      <div class="form-group"><textarea class="form-input" id="fp-terms" rows="7" placeholder="1. Client provides assets within 3 days of kickoff.&#10;2. Extra revisions billed at hourly rate.&#10;3. Payment per agreed schedule.&#10;4. Ownership transfers on full payment."></textarea></div>
+    </div>
+    <div class="card">
+      <div class="sh">Private Notes</div>
+      <div class="form-group"><textarea class="form-input" id="fp-notes" rows="3" placeholder="Internal notes — not shown to client"></textarea></div>
+    </div>
+    <div style="text-align:right;margin-top:8px"><button class="btn btn-green" onclick="saveProposal()">💾 Save Proposal</button></div>
+  </div>
+</div>
+
+<!-- CLIENTS -->
+<div class="page" id="page-clients">
+  <div class="ph">
+    <div><div class="ph-title">Clients</div><div class="ph-sub">Track client relationships</div></div>
+    <button class="btn" onclick="toggleForm('client-form')">+ Add Client</button>
+  </div>
+  <div class="card" id="client-form" style="display:none;margin-bottom:16px">
+    <div class="sh">New Client</div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="cl-name" placeholder="Client or company"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="cl-email" placeholder="email@company.com"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="cl-phone" placeholder="+1 234 567 8900"></div>
+      <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="cl-loc" placeholder="City, Country"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="cl-notes" rows="2" placeholder="Any notes..."></textarea></div>
+    <button class="btn" onclick="addClient()">Save Client</button>
+  </div>
+  <div id="clients-list"></div>
+</div>
+
+<!-- SERVICES -->
+<div class="page" id="page-services">
+  <div class="ph">
+    <div><div class="ph-title">Service Templates</div><div class="ph-sub">Reusable line items for fast proposals</div></div>
+    <button class="btn" onclick="toggleForm('svc-form')">+ Add Service</button>
+  </div>
+  <div class="card" id="svc-form" style="display:none;margin-bottom:16px">
+    <div class="sh">New Service</div>
+    <div class="grid3">
+      <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="sv-name" placeholder="e.g. Logo Design"></div>
+      <div class="form-group"><label class="form-label">Default Rate ($)</label><input class="form-input" id="sv-rate" type="number" placeholder="500"></div>
+      <div class="form-group"><label class="form-label">Unit</label><select class="form-input" id="sv-unit"><option>fixed</option><option>hr</option><option>day</option><option>page</option><option>screen</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="sv-desc" placeholder="Brief description"></div>
+    <button class="btn" onclick="addService()">Save Service</button>
+  </div>
+  <div id="services-list"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="ph">
+    <div><div class="ph-title">Studio Settings</div><div class="ph-sub">Your branding and default preferences</div></div>
+    <button class="btn" onclick="saveSettings()">💾 Save Settings</button>
+  </div>
+  <div class="card">
+    <div class="sh">Studio / Company Info</div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Studio Name *</label><input class="form-input" id="ss-name" placeholder="Your Studio Name"></div>
+      <div class="form-group"><label class="form-label">Your Name</label><input class="form-input" id="ss-owner" placeholder="Your full name"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="ss-email" placeholder="you@studio.com"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="ss-phone" placeholder="+1 234 567 8900"></div>
+      <div class="form-group"><label class="form-label">Website</label><input class="form-input" id="ss-web" placeholder="https://yourstudio.com"></div>
+      <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="ss-loc" placeholder="City, Country"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sh">Proposal Defaults</div>
+    <div class="grid3">
+      <div class="form-group"><label class="form-label">Currency</label><select class="form-input" id="ss-curr"><option value="$">USD ($)</option><option value="€">EUR (€)</option><option value="£">GBP (£)</option><option value="₹">INR (₹)</option></select></div>
+      <div class="form-group"><label class="form-label">Default Tax %</label><input class="form-input" id="ss-tax" type="number" min="0" max="100" value="0"></div>
+      <div class="form-group"><label class="form-label">Valid For (days)</label><input class="form-input" id="ss-days" type="number" value="30"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Default Payment Terms</label><select class="form-input" id="ss-payment"><option>50% upfront, 50% on delivery</option><option>100% upfront</option><option>Net 30</option><option>Net 15</option></select></div>
+    <div class="form-group"><label class="form-label">Default Terms & Conditions</label><textarea class="form-input" id="ss-terms" rows="5" placeholder="Your standard terms..."></textarea></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-overlay" id="preview-modal">
+  <button class="modal-close" onclick="closePreview()">✕</button>
+  <button class="modal-print" onclick="window.print()">🖨️ Print / PDF</button>
+  <div class="doc" id="preview-doc"></div>
+</div>
+
+<script>
+// ===== DATA =====
+var D = {
+  proposals: [],
+  clients: [],
+  services: [
+    {id:'s1',name:'Web Design',rate:1200,unit:'fixed',desc:'Complete website design with wireframes and mockups'},
+    {id:'s2',name:'Web Development',rate:2500,unit:'fixed',desc:'Full-stack development and deployment'},
+    {id:'s3',name:'Logo Design',rate:350,unit:'fixed',desc:'Professional logo with 3 concepts and revisions'},
+    {id:'s4',name:'SEO Optimization',rate:150,unit:'hr',desc:'Keyword research and on-page optimization'},
+    {id:'s5',name:'Consulting',rate:200,unit:'hr',desc:'Strategy and advisory services'},
+    {id:'s6',name:'Content Writing',rate:80,unit:'hr',desc:'Professional copywriting and content creation'},
+  ],
+  settings: {
+    name:'My Studio',owner:'',email:'',phone:'',website:'',location:'',
+    currency:'$',tax:0,validDays:30,
+    payment:'50% upfront, 50% on delivery',
+    terms:'1. Client provides all assets within 3 business days of kickoff.\n2. Additional revisions beyond agreed rounds billed at hourly rate.\n3. Payment per agreed schedule.\n4. Full ownership transfers upon complete payment.'
+  }
+};
+
+function persist(){try{localStorage.setItem('sm2',JSON.stringify(D));}catch(e){}}
+function restore(){try{var d=localStorage.getItem('sm2');if(d)D=JSON.parse(d);}catch(e){}}
+restore();
+
+// ===== NAVIGATION =====
+function nav(page){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  var p=document.getElementById('page-'+page);
+  var n=document.getElementById('nav-'+page);
+  if(p)p.classList.add('active');
+  if(n)n.classList.add('active');
+  if(page==='dashboard')renderDash();
+  if(page==='proposals')renderProposals();
+  if(page==='clients')renderClients();
+  if(page==='services')renderServices();
+  if(page==='settings')loadSettings();
+  if(page==='new'){resetForm();setTimeout(addLI,50);}
+}
+
+// ===== FORM TABS =====
+function ftab(id){
+  document.querySelectorAll('.ftab-pane').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.ftab').forEach(function(t){t.classList.remove('active');});
+  var p=document.getElementById(id);if(p)p.classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== LINE ITEMS =====
+var LIs=[];
+function addLI(desc,qty,rate){
+  var id='li'+Date.now()+Math.random().toString(36).slice(2,5);
+  LIs.push({id:id,desc:desc||'',qty:qty||1,rate:rate||0});
+  renderLIs();
+}
+function removeLI(id){LIs=LIs.filter(function(x){return x.id!==id;});renderLIs();calcTotals();}
+function updateLI(id,f,v){
+  var li=LIs.find(function(x){return x.id===id;});
+  if(!li)return;
+  li[f]=f==='desc'?v:(parseFloat(v)||0);
+  var el=document.getElementById('lit-'+id);
+  if(el)el.textContent=curr()+(li.qty*li.rate).toFixed(2);
+  calcTotals();
+}
+function renderLIs(){
+  var c=document.getElementById('li-container');if(!c)return;
+  c.innerHTML='';
+  LIs.forEach(function(li){
+    var row=document.createElement('div');
+    row.className='li-grid';
+    var tot=(li.qty*li.rate).toFixed(2);
+    row.innerHTML='<input class="form-input" value="'+esc(li.desc)+'" placeholder="Description" oninput="updateLI(\''+li.id+'\',\'desc\',this.value)">'
+      +'<input class="form-input" type="number" min="0.1" step="0.1" value="'+li.qty+'" oninput="updateLI(\''+li.id+'\',\'qty\',this.value)">'
+      +'<input class="form-input" type="number" min="0" step="0.01" value="'+li.rate+'" oninput="updateLI(\''+li.id+'\',\'rate\',this.value)">'
+      +'<div class="li-total" id="lit-'+li.id+'">'+curr()+tot+'</div>'
+      +'<button onclick="removeLI(\''+li.id+'\')" style="background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.2);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>';
+    c.appendChild(row);
+  });
+  calcTotals();
+}
+function curr(){var el=document.getElementById('fp-currency');return el?el.value:(D.settings.currency||'$');}
+function calcTotals(){
+  var sub=LIs.reduce(function(s,li){return s+li.qty*li.rate;},0);
+  var disc=parseFloat(document.getElementById('fp-disc')?.value)||0;
+  var tax=parseFloat(document.getElementById('fp-tax')?.value)||0;
+  var da=sub*(disc/100),after=sub-da,ta=after*(tax/100),total=after+ta;
+  var c=curr();
+  var set=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  set('t-sub',c+sub.toFixed(2));
+  set('t-disc','-'+c+da.toFixed(2));
+  set('t-tax','+'+c+ta.toFixed(2));
+  set('t-total',c+total.toFixed(2));
+  return{sub,da,ta,total};
+}
+function getTotals(){
+  var sub=LIs.reduce(function(s,li){return s+li.qty*li.rate;},0);
+  var disc=parseFloat(document.getElementById('fp-disc')?.value)||0;
+  var tax=parseFloat(document.getElementById('fp-tax')?.value)||0;
+  var da=sub*(disc/100),after=sub-da,ta=after*(tax/100);
+  return{sub,da,ta,total:after+ta};
+}
+
+// ===== SAVE PROPOSAL =====
+function resetForm(){
+  LIs=[];
+  document.getElementById('edit-id').value='';
+  document.getElementById('form-heading').textContent='New Proposal';
+  ['fc-name','fc-email','fc-company','fc-location','fp-title','fp-overview','fp-dur','fp-milestones','fp-terms','fp-notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var disc=document.getElementById('fp-disc');if(disc)disc.value=0;
+  var tax=document.getElementById('fp-tax');if(tax)tax.value=D.settings.tax||0;
+  var rev=document.getElementById('fp-rev');if(rev)rev.value=2;
+  var terms=document.getElementById('fp-terms');if(terms)terms.value=D.settings.terms||'';
+  var pay=document.getElementById('fp-payment');if(pay)pay.value=D.settings.payment;
+  var curr2=document.getElementById('fp-currency');if(curr2)curr2.value=D.settings.currency||'$';
+  var vd=new Date();vd.setDate(vd.getDate()+(D.settings.validDays||30));
+  var vel=document.getElementById('fp-valid');if(vel)vel.value=vd.toISOString().split('T')[0];
+  var sd=new Date();sd.setDate(sd.getDate()+7);
+  var sel2=document.getElementById('fp-start');if(sel2)sel2.value=sd.toISOString().split('T')[0];
+  document.querySelectorAll('.ftab').forEach(function(t,i){t.classList.toggle('active',i===0);});
+  document.querySelectorAll('.ftab-pane').forEach(function(p,i){p.classList.toggle('active',i===0);});
+  var lc=document.getElementById('li-container');if(lc)lc.innerHTML='';
+  calcTotals();
+}
+
+function saveProposal(){
+  var title=document.getElementById('fp-title').value.trim();
+  var cname=document.getElementById('fc-name').value.trim();
+  if(!title){alert('Proposal title is required.');return;}
+  if(!cname){alert('Client name is required.');return;}
+  if(!LIs.length){alert('Add at least one line item.');return;}
+  var t=getTotals();
+  var id=document.getElementById('edit-id').value||('p'+Date.now());
+  var p={
+    id:id,title:title,cname:cname,
+    cemail:document.getElementById('fc-email').value,
+    ccompany:document.getElementById('fc-company').value,
+    cloc:document.getElementById('fc-location').value,
+    type:document.getElementById('fp-type').value,
+    status:document.getElementById('fp-status').value,
+    priority:document.getElementById('fp-priority').value,
+    valid:document.getElementById('fp-valid').value,
+    start:document.getElementById('fp-start').value,
+    currency:document.getElementById('fp-currency').value,
+    overview:document.getElementById('fp-overview').value,
+    LIs:JSON.parse(JSON.stringify(LIs)),
+    disc:parseFloat(document.getElementById('fp-disc').value)||0,
+    tax:parseFloat(document.getElementById('fp-tax').value)||0,
+    payment:document.getElementById('fp-payment').value,
+    rev:document.getElementById('fp-rev').value,
+    dur:document.getElementById('fp-dur').value,
+    milestones:document.getElementById('fp-milestones').value,
+    terms:document.getElementById('fp-terms').value,
+    notes:document.getElementById('fp-notes').value,
+    sub:t.sub,da:t.da,ta:t.ta,total:t.total,
+    updatedAt:new Date().toISOString()
+  };
+  var idx=D.proposals.findIndex(function(x){return x.id===id;});
+  if(idx>=0){Object.assign(D.proposals[idx],p);}
+  else{p.createdAt=new Date().toISOString();D.proposals.unshift(p);}
+  persist();
+  nav('proposals');
+}
+
+function editProposal(id){
+  var p=D.proposals.find(function(x){return x.id===id;});if(!p)return;
+  nav('new');
+  document.getElementById('edit-id').value=p.id;
+  document.getElementById('form-heading').textContent='Edit Proposal';
+  var m={'fc-name':p.cname,'fc-email':p.cemail,'fc-company':p.ccompany,'fc-location':p.cloc,
+    'fp-title':p.title,'fp-overview':p.overview,'fp-valid':p.valid,'fp-start':p.start,
+    'fp-disc':p.disc,'fp-tax':p.tax,'fp-rev':p.rev,'fp-dur':p.dur,
+    'fp-milestones':p.milestones,'fp-terms':p.terms,'fp-notes':p.notes};
+  Object.entries(m).forEach(function(e){var el=document.getElementById(e[0]);if(el)el.value=e[1]||'';});
+  ['fp-type','fp-status','fp-priority','fp-currency','fp-payment'].forEach(function(sid){
+    var el=document.getElementById(sid);
+    if(el&&p[sid.replace('fp-','')])el.value=p[sid.replace('fp-','')]||el.value;
+  });
+  var typeEl=document.getElementById('fp-type');if(typeEl&&p.type)typeEl.value=p.type;
+  var statEl=document.getElementById('fp-status');if(statEl&&p.status)statEl.value=p.status;
+  var prEl=document.getElementById('fp-priority');if(prEl&&p.priority)prEl.value=p.priority;
+  var curEl=document.getElementById('fp-currency');if(curEl&&p.currency)curEl.value=p.currency;
+  var payEl=document.getElementById('fp-payment');if(payEl&&p.payment)payEl.value=p.payment;
+  LIs=JSON.parse(JSON.stringify(p.LIs||[]));
+  renderLIs();
+}
+
+function dupProposal(id){
+  var p=D.proposals.find(function(x){return x.id===id;});if(!p)return;
+  var c=JSON.parse(JSON.stringify(p));
+  c.id='p'+Date.now();c.title='Copy of '+c.title;c.status='Draft';
+  c.createdAt=c.updatedAt=new Date().toISOString();
+  D.proposals.unshift(c);persist();renderProposals();
+}
+
+function delProposal(id){
+  if(!confirm('Delete this proposal?'))return;
+  D.proposals=D.proposals.filter(function(x){return x.id!==id;});
+  persist();renderProposals();renderDash();
+}
+
+// ===== RENDER =====
+function statusBadge(s){
+  var map={Draft:'b-accent',Sent:'b-blue',Accepted:'b-green',Declined:'b-danger',Expired:'b-warn'};
+  return '<span class="badge '+(map[s]||'b-accent')+'">'+s+'</span>';
+}
+
+function renderProposals(){
+  var c=document.getElementById('proposals-list');if(!c)return;
+  var f=document.getElementById('filter-status')?.value||'';
+  var list=D.proposals.filter(function(p){return !f||p.status===f;});
+  if(!list.length){c.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>No proposals found.<br>Create your first proposal!</p></div>';return;}
+  c.innerHTML=list.map(function(p){
+    var days=p.valid?Math.ceil((new Date(p.valid)-new Date())/(864e5)):null;
+    var exp=days!==null?(days>=0?'<span style="font-size:11px;color:var(--text3)">'+days+'d left</span>':'<span style="font-size:11px;color:var(--danger)">Expired</span>'):'';
+    return '<div class="proposal-row">'
+      +'<div class="pr-info"><div class="pr-title">'+esc(p.title)+'</div>'
+      +'<div class="pr-meta">'+esc(p.cname)+(p.ccompany?' · '+esc(p.ccompany):'')+(p.type?' · '+p.type:'')+(p.createdAt?' · '+new Date(p.createdAt).toLocaleDateString():'')+(exp?' · '+exp:'')+'</div></div>'
+      +'<div class="pr-right">'
+      +'<div><div class="pr-amount">'+(p.currency||'$')+p.total.toFixed(2)+'</div>'+statusBadge(p.status)+'</div>'
+      +'<div class="pr-actions">'
+      +'<button class="btn-outline btn-sm" onclick="previewP(\''+p.id+'\')">👁️ Preview</button>'
+      +'<button class="btn-outline btn-sm" onclick="editProposal(\''+p.id+'\')">✏️ Edit</button>'
+      +'<button class="btn-outline btn-sm" onclick="dupProposal(\''+p.id+'\')">📋 Copy</button>'
+      +'<button class="btn-ghost" onclick="delProposal(\''+p.id+'\')">🗑️</button>'
+      +'</div></div></div>';
+  }).join('');
+}
+
+function renderDash(){
+  var total=D.proposals.length;
+  var acc=D.proposals.filter(function(p){return p.status==='Accepted';});
+  var rev=acc.reduce(function(s,p){return s+p.total;},0);
+  var sent=D.proposals.filter(function(p){return p.status==='Sent'||p.status==='Accepted';});
+  var cr=sent.length?Math.round(acc.length/sent.length*100):0;
+  var pipe=D.proposals.filter(function(p){return p.status==='Sent';}).reduce(function(s,p){return s+p.total;},0);
+  var set=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  set('ds-total',total);set('ds-rev','$'+rev.toFixed(0));set('ds-pipe','$'+pipe.toFixed(0));set('ds-cr',cr+'%');
+  set('sb-rev','$'+rev.toFixed(0));set('sb-pipe','$'+pipe.toFixed(0));set('sb-cr',cr+'%');
+
+  var rec=document.getElementById('ds-recent');
+  if(rec){
+    var r5=D.proposals.slice(0,5);
+    rec.innerHTML=r5.length?r5.map(function(p){
+      return '<div class="card" style="padding:12px 14px;margin-bottom:7px;cursor:pointer" onclick="editProposal(\''+p.id+'\')">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div style="font-size:13px;font-weight:700">'+esc(p.title)+'</div>'
+        +'<div style="font-size:11px;color:var(--text2)">'+esc(p.cname)+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:15px;font-weight:900;color:var(--green)">'+(p.currency||'$')+p.total.toFixed(0)+'</div>'+statusBadge(p.status)+'</div>'
+        +'</div></div>';
+    }).join(''):'<div class="empty"><div class="empty-ico">📋</div><p>No proposals yet.</p></div>';
+  }
+
+  var fu=document.getElementById('ds-fu');
+  if(fu){
+    var fup=D.proposals.filter(function(p){return p.status==='Sent'&&p.valid&&Math.ceil((new Date(p.valid)-new Date())/(864e5))<=7;});
+    fu.innerHTML=fup.length?fup.map(function(p){
+      var d=Math.ceil((new Date(p.valid)-new Date())/(864e5));
+      return '<div class="card card-l-warn" style="padding:11px 14px;margin-bottom:6px"><div style="font-size:13px;font-weight:700">'+esc(p.title)+'</div><div style="font-size:12px;color:var(--warn)">Follow up with '+esc(p.cname)+' — '+d+' days left</div></div>';
+    }).join(''):'<div style="color:var(--text3);font-size:13px;padding:10px">✅ No urgent follow-ups</div>';
+  }
+
+  var sc=document.getElementById('ds-status');
+  if(sc&&D.proposals.length){
+    var sts=['Draft','Sent','Accepted','Declined','Expired'];
+    var cols={Draft:'#a89fff',Sent:D.settings.currency||'#3b82f6',Accepted:'#10b981',Declined:'#ef4444',Expired:'#f59e0b'};
+    var colMap={Draft:'#a89fff',Sent:'#3b82f6',Accepted:'#10b981',Declined:'#ef4444',Expired:'#f59e0b'};
+    sc.innerHTML=sts.map(function(s){
+      var cnt=D.proposals.filter(function(p){return p.status===s;}).length;
+      if(!cnt)return'';
+      var pct=Math.round(cnt/D.proposals.length*100);
+      return '<div style="margin:7px 0"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>'+s+'</span><span style="color:'+colMap[s]+'">'+cnt+' ('+pct+'%)</span></div><div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;background:'+colMap[s]+'"></div></div></div>';
+    }).join('');
+  }
+}
+
+// ===== PREVIEW =====
+function previewP(id){
+  var p=D.proposals.find(function(x){return x.id===id;});if(!p)return;
+  var s=D.settings;var c=p.currency||'$';
+  var html='<div class="doc-header"><div><div class="doc-brand">'+(s.name||'My Studio')+'</div>'
+    +(s.email?'<div class="doc-brand-sub">'+esc(s.email)+'</div>':'')
+    +(s.phone?'<div class="doc-brand-sub">'+esc(s.phone)+'</div>':'')
+    +(s.location?'<div class="doc-brand-sub">'+esc(s.location)+'</div>':'')
+    +'</div><div style="text-align:right"><div class="doc-to-label">Prepared For</div>'
+    +'<div class="doc-to-name">'+esc(p.cname)+'</div>'
+    +(p.ccompany?'<div class="doc-to-meta">'+esc(p.ccompany)+'</div>':'')
+    +(p.cemail?'<div class="doc-to-meta">'+esc(p.cemail)+'</div>':'')
+    +'</div></div>';
+  html+='<div class="doc-title">'+esc(p.title)+'</div>';
+  html+='<div class="doc-meta">'+esc(p.type||'')+(p.start?' · Start: '+p.start:'')+(p.valid?' · Valid until: '+p.valid:'')+(p.priority&&p.priority!=='Normal'?' · Priority: '+p.priority:'')+'</div>';
+  if(p.overview)html+='<div class="doc-section"><div class="doc-section-title">Project Overview</div><div class="doc-overview">'+esc(p.overview)+'</div></div>';
+  html+='<div class="doc-section"><div class="doc-section-title">Scope of Work</div>';
+  (p.LIs||[]).forEach(function(li){
+    html+='<div class="doc-item"><div><div class="doc-item-name">'+esc(li.desc)+'</div><div class="doc-item-qty">'+li.qty+' × '+c+parseFloat(li.rate).toFixed(2)+'</div></div><div class="doc-item-total">'+c+(li.qty*li.rate).toFixed(2)+'</div></div>';
+  });
+  html+='<div class="doc-totals"><div class="doc-total-row"><span>Subtotal</span><span>'+c+p.sub.toFixed(2)+'</span></div>';
+  if(p.disc)html+='<div class="doc-total-row"><span>Discount ('+p.disc+'%)</span><span style="color:#ef4444">-'+c+p.da.toFixed(2)+'</span></div>';
+  if(p.tax)html+='<div class="doc-total-row"><span>Tax ('+p.tax+'%)</span><span>+'+c+p.ta.toFixed(2)+'</span></div>';
+  html+='<div class="doc-total-final"><span>Total</span><span>'+c+p.total.toFixed(2)+'</span></div></div></div>';
+  if(p.dur||p.milestones){
+    html+='<div class="doc-section"><div class="doc-section-title">Timeline</div>';
+    if(p.dur)html+='<p style="font-size:14px;margin-bottom:8px"><strong>Duration:</strong> '+esc(p.dur)+' · <strong>Revisions:</strong> '+p.rev+' rounds</p>';
+    if(p.milestones)html+='<pre style="font-size:13px;line-height:1.7;white-space:pre-wrap;color:#444">'+esc(p.milestones)+'</pre>';
+    html+='</div>';
+  }
+  html+='<div class="doc-section"><div class="doc-section-title">Payment</div><p style="font-size:14px;color:#333">'+esc(p.payment)+'</p></div>';
+  if(p.terms)html+='<div class="doc-section"><div class="doc-section-title">Terms & Conditions</div><div class="doc-terms-box">'+esc(p.terms)+'</div></div>';
+  html+='<div class="doc-signature"><div class="doc-sig-box">Client Signature &amp; Date</div><div class="doc-sig-box">'+(s.owner||s.name||'Studio')+'</div></div>';
+  html+='<div class="doc-footer">Prepared by '+(s.name||'My Studio')+(s.owner?' ('+esc(s.owner)+')':'')+(p.valid?' · Valid until '+p.valid:'')+' · Thank you for your business.</div>';
+  document.getElementById('preview-doc').innerHTML=html;
+  document.getElementById('preview-modal').classList.add('open');
+}
+function closePreview(){document.getElementById('preview-modal').classList.remove('open');}
+
+// ===== CLIENTS =====
+function toggleForm(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+function addClient(){
+  var name=document.getElementById('cl-name').value.trim();if(!name){alert('Name required.');return;}
+  D.clients.push({id:'c'+Date.now(),name:name,email:document.getElementById('cl-email').value,phone:document.getElementById('cl-phone').value,loc:document.getElementById('cl-loc').value,notes:document.getElementById('cl-notes').value,added:new Date().toISOString()});
+  persist();document.getElementById('client-form').style.display='none';renderClients();
+}
+function delClient(id){if(!confirm('Delete?'))return;D.clients=D.clients.filter(function(c){return c.id!==id;});persist();renderClients();}
+function renderClients(){
+  var c=document.getElementById('clients-list');if(!c)return;
+  if(!D.clients.length){c.innerHTML='<div class="empty"><div class="empty-ico">👥</div><p>No clients yet.</p></div>';return;}
+  c.innerHTML=D.clients.map(function(cl){
+    var ps=D.proposals.filter(function(p){return p.cname===cl.name;});
+    var rev=ps.filter(function(p){return p.status==='Accepted';}).reduce(function(s,p){return s+p.total;},0);
+    return '<div class="card card-l-accent"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:15px;font-weight:700">'+esc(cl.name)+'</div><div style="font-size:12px;color:var(--text2);margin-top:4px">'+(cl.email||'')+(cl.phone?' · '+cl.phone:'')+(cl.loc?' · '+cl.loc:'')+'</div>'+(cl.notes?'<div style="font-size:12px;color:var(--text3);margin-top:3px">'+esc(cl.notes)+'</div>':'')+'</div><div style="text-align:right"><div style="font-size:17px;font-weight:900;color:var(--green)">$'+rev.toFixed(0)+'</div><div style="font-size:12px;color:var(--text2)">'+ps.length+' proposals</div><button class="btn-ghost" onclick="delClient(\''+cl.id+'\')" style="margin-top:8px">Delete</button></div></div></div>';
+  }).join('');
+}
+
+// ===== SERVICES =====
+function addService(){
+  var name=document.getElementById('sv-name').value.trim();if(!name){alert('Name required.');return;}
+  D.services.push({id:'s'+Date.now(),name:name,rate:parseFloat(document.getElementById('sv-rate').value)||0,unit:document.getElementById('sv-unit').value,desc:document.getElementById('sv-desc').value});
+  persist();document.getElementById('svc-form').style.display='none';renderServices();
+}
+function delService(id){if(!confirm('Delete?'))return;D.services=D.services.filter(function(s){return s.id!==id;});persist();renderServices();}
+function useSvc(id){
+  var svc=D.services.find(function(s){return s.id===id;});if(!svc)return;
+  nav('new');setTimeout(function(){addLI(svc.name+(svc.desc?' — '+svc.desc:''),1,svc.rate);},100);
+}
+function renderServices(){
+  var c=document.getElementById('services-list');if(!c)return;
+  if(!D.services.length){c.innerHTML='<div class="empty"><div class="empty-ico">⚡</div><p>No services yet.</p></div>';return;}
+  c.innerHTML='<div class="card"><table class="tbl"><thead><tr><th>Service</th><th>Rate</th><th>Unit</th><th>Description</th><th>Action</th></tr></thead><tbody>'
+    +D.services.map(function(s){
+      return '<tr><td><strong>'+esc(s.name)+'</strong></td><td style="color:var(--green);font-weight:700">$'+s.rate+'</td><td><span class="badge b-accent">per '+s.unit+'</span></td><td style="color:var(--text2)">'+esc(s.desc||'')+'</td><td><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="useSvc(\''+s.id+'\')">Use</button><button class="btn-ghost" onclick="delService(\''+s.id+'\')">🗑️</button></div></td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+// ===== SETTINGS =====
+function loadSettings(){
+  var s=D.settings;
+  var m={'ss-name':'name','ss-owner':'owner','ss-email':'email','ss-phone':'phone','ss-web':'website','ss-loc':'location','ss-terms':'terms','ss-days':'validDays','ss-tax':'tax'};
+  Object.entries(m).forEach(function(e){var el=document.getElementById(e[0]);if(el)el.value=s[e[1]]||'';});
+  var c=document.getElementById('ss-curr');if(c)c.value=s.currency||'$';
+  var p=document.getElementById('ss-payment');if(p)p.value=s.payment;
+}
+function saveSettings(){
+  var m={'ss-name':'name','ss-owner':'owner','ss-email':'email','ss-phone':'phone','ss-web':'website','ss-loc':'location','ss-terms':'terms'};
+  Object.entries(m).forEach(function(e){D.settings[e[1]]=document.getElementById(e[0])?.value||'';});
+  D.settings.currency=document.getElementById('ss-curr')?.value||'$';
+  D.settings.tax=parseFloat(document.getElementById('ss-tax')?.value)||0;
+  D.settings.validDays=parseInt(document.getElementById('ss-days')?.value)||30;
+  D.settings.payment=document.getElementById('ss-payment')?.value||'50% upfront, 50% on delivery';
+  persist();alert('✅ Settings saved!');
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Init
+renderDash();
+renderServices();
+</script>
+</body>
+</html>
